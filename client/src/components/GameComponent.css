@@ -1,0 +1,211 @@
+.app {
+    text-align: center;
+    width: 100%;
+  }
+  
+  .game-title {
+    font-size: 2.5rem; /* Slightly reduced font size */
+    color: #333;
+    margin-bottom: 20px; /* Reduced margin */
+  }
+  
+  .game-container {
+    background-color: #fff;
+    padding: 50px; /* Reduced padding */
+    border-radius: 20px;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+    width: 90%; /* Increased width */
+    max-width: 800px; /* Set a max width to ensure it's responsive */
+    height: 80vh; /* Set the height to be 80% of the viewport */
+    overflow-y: auto; /* In case content overflows, it will scroll internally */
+  }
+  
+  .shape-sequence {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    grid-gap: 35px; /* Space between shapes */
+    justify-items: center;
+    margin: 10px 0; /* Reduced margin */
+    padding: 10px;
+  }
+  
+  .target-shape {
+    font-weight: bold;
+    color: #bd1212;
+  }
+  
+  .options-container {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px; /* Reduced margin */
+  }
+  
+  .option-btn {
+    padding: 10px 15px; /* Reduced button padding */
+    font-size: 1rem; /* Reduced font size */
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    background-color: #333;
+    color: white;
+    transition: background-color 0.3s;
+  }
+  
+  .option-btn:hover {
+    background-color: #555;
+  }
+  
+  .result {
+    font-size: 1.2rem; /* Reduced font size */
+    margin-top: 20px;
+    align-content: center;
+  }
+  
+  .next-btn, .restart-btn {
+    margin-top: 10px; /* Reduced margin */
+    padding: 10px 15px; /* Reduced padding */
+    font-size: 1rem; /* Reduced font size */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .next-btn {
+    background-color: #007bff;
+  }
+  
+  .next-btn:hover {
+    background-color: #0056b3;
+  }
+  
+  .restart-btn {
+    background-color: #28a745;
+  }
+  
+  .restart-btn:hover {
+    background-color: #218838;
+  }
+  
+  /* General shape styles */
+  .shape {
+    width: 80px; /* Size of each shape */
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative; /* So the eyes and smile are positioned correctly */
+  }
+  
+  .circle {
+    background-color: #ffcc00;
+    border-radius: 50%;
+  }
+  
+  .square {
+    background-color: #eb5491;
+  }
+  
+  .triangle {
+    width: 0;
+    height: 0;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-bottom: 80px solid #4ecdc4; /* Adjusted size */
+  }
+  
+  .shape::before, .shape::after {
+    content: '';
+    width: 12px; /* Reduced eye size */
+    height: 12px;
+    background-color: black;
+    border-radius: 50%;
+    position: absolute;
+    top: 30%;
+  }
+  
+  .shape::before {
+    left: 25%;
+  }
+  
+  .shape::after {
+    right: 25%;
+  }
+  
+  /* Common styles for all shapes */
+  
+  
+  /* Inverted smile for sad face */
+  .shape .sad-smile {
+    border-radius: 40px 40px 0 0;
+    border-color: black transparent transparent transparent;
+    top: 70%; /* Adjusted position for better alignment */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* Animation for the smile inversion */
+  @keyframes smileChange {
+    from {
+      transform: translateX(-50%) rotate(0deg);
+    }
+    to {
+      transform: translateX(-50%) rotate(180deg);
+    }
+  }
+  
+  .shape.sad .smile {
+    animation: smileChange 0.5s ease-out;
+  }
+  
+  /* Specific adjustments for the triangle */
+  
+  
+  /* General smile styles */
+  .shape .smile {
+    position: absolute;
+    width: 40px;
+    height: 20px;
+    border-radius: 0 0 40px 40px;
+    border: 3px solid black;
+    border-color: transparent transparent black transparent;
+    top: 60%; /* Default position */
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* Sad smile */
+  .shape .sad-smile {
+    border-radius: 40px 40px 0 0;
+    border-color: black transparent transparent transparent;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* Position adjustments for different shapes */
+  
+  /* Circle */
+  .shape.circle .smile,
+  .shape.circle .sad-smile {
+    top: 60%; /* Default position for circles */
+  }
+  
+  /* Square */
+  .shape.square .smile,
+  .shape.square .sad-smile {
+    top: 60%; /* Default position for squares */
+  }
+  
+  /* Triangle */
+  .shape.triangle .smile {
+    top: 80%; /* Push the smile down for triangles */
+  }
+  
+  .shape.triangle .sad-smile {
+    top: 25%; /* Sad smile also pushed lower for triangles */
+  }
+  
+  
+  
+  
