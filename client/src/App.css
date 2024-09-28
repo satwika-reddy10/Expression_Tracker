@@ -47,7 +47,7 @@ html, body {
 
 body {
   font-family: 'Arial', sans-serif;
-  background-image: url('./53a1d399c10dd3639e2c5a2f46cc11ab.jpg'); /* Replace with the path to your image */
+  background-image: url('./new_backgroudImage.jpg'); /* Replace with the path to your image */
   background-size: cover; /* Ensures the image covers the entire screen */
   background-position: center; /* Centers the image */
   background-repeat: no-repeat; /* Prevents the image from repeating */
