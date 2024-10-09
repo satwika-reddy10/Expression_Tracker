@@ -1,0 +1,52 @@
+/* Full-screen background with the uploaded image */
+.login-container {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('53a1d399c10dd3639e2c5a2f46cc11ab.jpg');
+    background-size: cover;
+    background-position: center;
+  }
+  
+  /* Centered login box */
+  .login-box {
+    background: whitesmoke ;/* Semi-transparent background */
+    padding: 50px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 300px;
+    /* z-index: 1000; */
+  }
+  
+  .input-field {
+    margin-bottom: 25px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #665f5f;
+  }
+  
+  button {
+    width: 100%;
+    padding: 10px;
+    background-color: #538ecd;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
