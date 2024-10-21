@@ -10,7 +10,7 @@ function App() {
   const [score, setScore] = useState(0);
   const [questions, setQuestions] = useState([]);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(null); // New state to track correctness
+  const [isCorrect, setIsCorrect] = useState(null);
 
   useEffect(() => {
     const newQuestions = Array(5)
@@ -23,7 +23,29 @@ function App() {
           .concat(
             Array(9 - randomCount).fill(null).map(() => shapes[Math.floor(Math.random() * shapes.length)]),
           );
-        return { shape: randomShape, sequence };
+
+        // Calculate the correct answer
+        const correctAnswer = sequence.filter((s) => s === randomShape).length;
+
+        let options = [correctAnswer];
+        // Generate 3 other random options
+        while (options.length < 4) {
+          const randomOption = Math.floor(Math.random() * 5) + 1;
+          if (!options.includes(randomOption)) {
+            options.push(randomOption);
+          }
+        }
+
+        // Shuffle options array so correct answer is not always at the same position
+        const shuffleArray = (array) => {
+          for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+          }
+          return array;
+        };
+
+        return { shape: randomShape, sequence, correctAnswer, options: shuffleArray(options) };
       });
     setQuestions(newQuestions);
   }, []);
@@ -33,7 +55,7 @@ function App() {
       setSelectedAnswer(answer);
       setIsAnswered(true);
 
-      const correctAnswer = questions[currentQuestion].sequence.filter((shape) => shape === questions[currentQuestion].shape).length;
+      const correctAnswer = questions[currentQuestion].correctAnswer;
       const correct = answer === correctAnswer;
       setIsCorrect(correct);
 
@@ -46,7 +68,7 @@ function App() {
   const nextQuestion = () => {
     setSelectedAnswer(null);
     setIsAnswered(false);
-    setIsCorrect(null); // Reset correctness for next question
+    setIsCorrect(null);
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
@@ -59,7 +81,7 @@ function App() {
     setCurrentQuestion(0);
     setSelectedAnswer(null);
     setIsAnswered(false);
-    setIsCorrect(null); // Reset correctness for restart
+    setIsCorrect(null);
   };
 
   if (currentQuestion >= questions.length) {
@@ -82,9 +104,7 @@ function App() {
 
   if (questions.length === 0) return <div>Loading...</div>;
 
-  const { shape, sequence } = questions[currentQuestion];
-  const correctAnswer = sequence.filter((s) => s === shape).length;
-  const options = Array(4).fill(null).map((_, i) => (i === 0 ? correctAnswer : correctAnswer + i));
+  const { shape, sequence, options } = questions[currentQuestion];
 
   return (
     <div className="app">
@@ -114,7 +134,7 @@ function App() {
         {selectedAnswer !== null && (
           <div>
             <p className="result">
-              {isCorrect ? 'Correct!' : `Wrong! The correct answer was ${correctAnswer}.`}
+              {isCorrect ? 'Correct!' : `Wrong! The correct answer was ${questions[currentQuestion].correctAnswer}.`}
             </p>
             <button
               className="next-btn"
@@ -131,3 +151,4 @@ function App() {
 }
 
 export default App;
+
