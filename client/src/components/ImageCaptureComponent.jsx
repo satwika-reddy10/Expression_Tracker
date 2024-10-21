@@ -32,12 +32,12 @@ const ImageCapture = () => {
         }
     };
 
-    // Upload images every 4 seconds
+    // Upload images every 5 seconds
     useEffect(() => {
         const intervalId = setInterval(() => {
             captureScreenshot();
             captureWebcamImage();
-        }, 4000);
+        }, 5000);
 
         return () => clearInterval(intervalId);
     }, []);
