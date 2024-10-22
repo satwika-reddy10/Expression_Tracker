@@ -6,14 +6,15 @@ const ImageCapture = () => {
     const [screenshot, setScreenshot] = useState(null);
     const [webcamImage, setWebcamImage] = useState(null);
     const videoRef = useRef(null);
-    const [sessionId, setSessionId] = useState(null); // Session ID for the session folder
+    const [sessionId, setSessionId] = useState(null);
+    const capturingRef = useRef(false); // Prevent double captures
 
     // Function to capture a screenshot
     const captureScreenshot = async () => {
         const canvas = await html2canvas(document.body); // Capture the current view
         canvas.toBlob(blob => {
-            const file = new File([blob], 'screenshot.png', { type: 'image/png' }); // Save as PNG
-            setScreenshot(file);
+            const file = new File([blob], 'screenshot.png', { type: 'image/png' });
+            setScreenshot(file); // Save as PNG
         }, 'image/png');
     };
 
@@ -26,21 +27,23 @@ const ImageCapture = () => {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
             canvas.toBlob(blob => {
-                const file = new File([blob], 'webcam.png', { type: 'image/png' }); // Save as PNG
-                setWebcamImage(file);
+                const file = new File([blob], 'webcam.png', { type: 'image/png' });
+                setWebcamImage(file); // Save as PNG
             }, 'image/png');
         }
     };
 
-    // Upload images every 5 seconds
-    useEffect(() => {
-        const intervalId = setInterval(() => {
+    // Single capture handler to avoid multiple triggers
+    const captureImages = () => {
+        if (!capturingRef.current) { // Check if capturing is already in progress
+            capturingRef.current = true; // Lock capture to prevent double executions
             captureScreenshot();
             captureWebcamImage();
-        }, 5000);
-
-        return () => clearInterval(intervalId);
-    }, []);
+            setTimeout(() => {
+                capturingRef.current = false; // Unlock capture after 1 second
+            }, 1000); // Small delay to ensure no double captures
+        }
+    };
 
     // Upload images when both are ready
     useEffect(() => {
@@ -49,6 +52,8 @@ const ImageCapture = () => {
                 try {
                     await uploadImages(screenshot, webcamImage, sessionId);
                     console.log('Images uploaded successfully');
+                    setScreenshot(null);  // Reset after upload
+                    setWebcamImage(null);  // Reset after upload
                 } catch (error) {
                     console.error('Error uploading images:', error);
                 }
@@ -74,7 +79,17 @@ const ImageCapture = () => {
             }
         };
         startWebcam();
-    }, []);
+
+        // Set an interval to capture images every 5 seconds
+        const intervalId = setInterval(() => {
+            captureImages(); // Call the single capture handler
+        }, 5000);
+
+        // Clear interval on component unmount
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, []); // Empty dependency array ensures this effect only runs once
 
     return (
         <div>
