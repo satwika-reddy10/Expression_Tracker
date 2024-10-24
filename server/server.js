@@ -179,7 +179,7 @@ async function analyzeImage(imagePath) {
       imageBuffer,
       {
         headers: {
-          Authorization: "Bearer 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",
+          Authorization: "",
           "Content-Type": "application/json",
         },
       }
