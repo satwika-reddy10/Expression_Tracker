@@ -1,6 +1,7 @@
 // src/components/GameComponent.jsx
 import React, { useState, useEffect } from 'react';
 import './GameComponent.css';
+import ImageCapture from './ImageCaptureComponent';
 
 const shapes = ['circle', 'square', 'triangle'];
 
@@ -21,7 +22,24 @@ function App() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
   const [shuffledOptions, setShuffledOptions] = useState([]);
-  const [streak, setStreak] = useState(0); // Track consecutive correct answers
+  const [streak, setStreak] = useState(0);
+  const [isGameActive, setIsGameActive] = useState(true);
+  const [sessionId, setSessionId] = useState(null);
+
+  // Function to request a new session ID from the server
+  const startSession = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/start-session');
+      const data = await response.json();
+      setSessionId(data.sessionId);
+    } catch (error) {
+      console.error('Error creating session:', error);
+    }
+  };
+
+  useEffect(() => {
+    startSession(); // Start a new session when the game loads
+  }, []);
 
   useEffect(() => {
     const newQuestions = Array(5)
@@ -34,21 +52,31 @@ function App() {
           .concat(
             Array(9 - randomCount).fill(null).map(() => shapes[Math.floor(Math.random() * shapes.length)]),
           );
-        return { shape: randomShape, sequence };
+
+        const correctAnswer = sequence.filter((s) => s === randomShape).length;
+
+        let options = [correctAnswer];
+        while (options.length < 4) {
+          const randomOption = Math.floor(Math.random() * 5) + 1;
+          if (!options.includes(randomOption)) {
+            options.push(randomOption);
+          }
+        }
+
+        return {
+          shape: randomShape,
+          sequence,
+          correctAnswer,
+          options: shuffleArray([...options])
+        };
       });
     setQuestions(newQuestions);
   }, []);
 
   useEffect(() => {
     if (questions.length > 0 && currentQuestion < questions.length) {
-      const { shape, sequence } = questions[currentQuestion];
-      const correctAnswer = sequence.filter((s) => s === shape).length;
-      const options = Array(4)
-        .fill(null)
-        .map((_, i) => (i === 0 ? correctAnswer : correctAnswer + i));
-      
-      // Shuffle options before displaying
-      setShuffledOptions(shuffleArray([...options]));
+      const { options } = questions[currentQuestion];
+      setShuffledOptions(options);
     }
   }, [currentQuestion, questions]);
 
@@ -57,7 +85,7 @@ function App() {
       setSelectedAnswer(answer);
       setIsAnswered(true);
 
-      const correctAnswer = questions[currentQuestion].sequence.filter((shape) => shape === questions[currentQuestion].shape).length;
+      const correctAnswer = questions[currentQuestion].correctAnswer;
       const correct = answer === correctAnswer;
       setIsCorrect(correct);
 
@@ -77,17 +105,20 @@ function App() {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
+      setIsGameActive(false); // Set game as inactive when finished
       setCurrentQuestion(questions.length);
     }
   };
 
-  const restartGame = () => {
+  const restartGame = async () => {
+    await startSession(); // Start a new session when the game restarts
     setScore(0);
     setCurrentQuestion(0);
     setSelectedAnswer(null);
     setIsAnswered(false);
     setIsCorrect(null);
-    setStreak(0); // Reset streak when restarting game
+    setStreak(0);
+    setIsGameActive(true);
   };
 
   // Function to return the appropriate emoji based on the answer and streak
@@ -102,7 +133,15 @@ function App() {
     }
   };
 
-  if (currentQuestion >= questions.length || questions.length === 0) {
+  // Render ImageCapture component only when game is active
+  const renderImageCapture = () => {
+    if (isGameActive && sessionId) {
+      return <ImageCapture sessionId={sessionId} isActive={isGameActive} />;
+    }
+    return null;
+  };
+
+  if (currentQuestion >= questions.length) {
     return (
       <div className="app">
         <h1 className="game-title">Shape Counting Game</h1>
@@ -120,19 +159,23 @@ function App() {
     );
   }
 
-  if (questions.length === 0 || !questions[currentQuestion]) return <div>Loading...</div>;
+  if (questions.length === 0) return <div>Loading...</div>;
 
-  const { shape, sequence } = questions[currentQuestion];
-  const correctAnswer = sequence.filter((s) => s === shape).length;
+  const { shape, sequence, options } = questions[currentQuestion];
 
   return (
     <div className="app">
+      {renderImageCapture()}
       <h1 className="game-title">Shape Counting Game</h1>
       <div className="game-container">
-        <h3>How many <span className="target-shape">{shape}s</span> are in the image?</h3>
+        <h3>How many <span className="target-shape">{shape}s</span> are in the sequence?</h3>
         <div className="shape-sequence">
           {sequence.map((s, index) => (
-            <div key={index} className={`shape ${s}`} aria-label={`A ${s}`}>
+            <div 
+              key={index} 
+              className={`shape ${s} ${isCorrect === false ? 'sad' : ''}`} 
+              aria-label={`A ${s}`}
+            >
               {s && <span className="smiley">{getSmiley()}</span>}
             </div>
           ))}
@@ -153,7 +196,7 @@ function App() {
         {selectedAnswer !== null && (
           <div>
             <p className="result">
-              {isCorrect ? 'Correct!' : `Wrong! The correct answer was ${correctAnswer}.`}
+              {isCorrect ? 'Correct!' : `Wrong! The correct answer was ${questions[currentQuestion].correctAnswer}.`}
             </p>
             <button
               className="next-btn"
