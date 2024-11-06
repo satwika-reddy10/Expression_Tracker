@@ -1,0 +1,124 @@
+/* @tailwind base;
+@tailwind components;
+@tailwind utilities; */
+
+/* General Container Styling */
+.admin-app-container {
+  background-image: url('../../backgroundfinal.jpg'); /* Update this path as needed */
+  background-size: cover;
+  background-position: center;
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
+  color: #333;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+/* Table Styling */
+.table-container {
+  overflow-x: auto;
+  margin-top: 20px;
+  background-color: rgba(255, 255, 255, 0.85); /* Light background for better readability */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 80%; /* Reduce table width for better alignment with pie chart */
+  margin: 0 auto; /* Center align table */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  padding: 12px;
+  background-color: #3A9AD9; /* Muted teal to match the background color scheme */
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+tbody td {
+  padding: 12px;
+  text-align: center;
+  border-top: 1px solid #ddd;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* Row Hover Effect */
+tbody tr:hover {
+  background-color: rgba(58, 154, 217, 0.1); /* Subtle hover effect with a soft teal tint */
+}
+
+/* Image Styling */
+tbody td img {
+  width: 80%;
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+tbody td img:hover {
+  transform: scale(1.05);
+}
+
+/* Emotion Label Styling */
+.emotion-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  font-family: 'Montserrat', sans-serif;
+  margin-top: 5px;
+}
+
+/* Chart and Button Section */
+.chart-section {
+  width: 70%;
+  margin: 0 auto;
+}
+
+.back-button {
+  background-color: #F28B82; /* Coral color matching the background */
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  display: block;
+  margin: 20px auto;
+}
+
+.back-button:hover {
+  background-color: #E57373;
+  transform: translateY(-2px);
+}
+
+/* Sessions List Styling */
+.sessions-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sessions-list li {
+  padding: 12px;
+  margin-bottom: 10px;
+  background-color: #FFF3E0; /* Light yellow to complement the background */
+  border: 1px solid #FFAB91;
+  border-radius: 8px;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.sessions-list li:hover {
+  background-color: #FFE0B2; /* Darker yellow on hover */
+}

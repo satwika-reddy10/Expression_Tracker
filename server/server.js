@@ -34,6 +34,7 @@ const AnalysisSchema = new mongoose.Schema({
         surprise: Number,
         neutral: Number,
       },
+      dominantEmotion: String,
     },
   ],
   overallAnalysis: {
@@ -66,13 +67,108 @@ const storage = multer.diskStorage({
     cb(null, sessionPath);
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}.png`);
+    const now = new Date();
+    const dateString = now.toISOString().split("T")[0]; // YYYY-MM-DD
+    const timeString = now.toTimeString().split(" ")[0].split(":").join("-"); // HH-MM-SS
+    const filename = `${dateString}_${timeString}.png`; // Format: YYYY-MM-DD_HH-MM-SS.png
+    cb(null, filename);
   },
 });
 
 const upload = multer({ storage });
 
-app.get("/start-session", (req, res) => {
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
+  try {
+    const imageBuffer = await fs.promises.readFile(imagePath);
+
+    if (!imageBuffer || imageBuffer.length === 0) {
+      throw new Error("Image file is empty or unreadable.");
+    }
+
+    const response = await axios.post(
+      "https://api-inference.huggingface.co/models/motheecreator/vit-Facial-Expression-Recognition",
+      imageBuffer,
+      {
+        headers: {
+          Authorization: "",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.error?.includes("Model is loading")) {
+      if (retryCount < maxRetries) {
+        const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10 seconds
+        await delay(backoffTime);
+        return analyzeImage(imagePath, retryCount + 1, maxRetries);
+      } else {
+        throw new Error("Max retries reached while waiting for model to load");
+      }
+    }
+
+    const emotions = {
+      angry: 0,
+      disgust: 0,
+      fear: 0,
+      happy: 0,
+      sad: 0,
+      surprise: 0,
+      neutral: 0,
+    };
+
+    let totalScore = 0;
+    response.data.forEach((result) => {
+      if (result.label.toLowerCase() in emotions) {
+        totalScore += result.score;
+      }
+    });
+
+    response.data.forEach((result) => {
+      if (result.label.toLowerCase() in emotions) {
+        emotions[result.label.toLowerCase()] = (
+          (result.score / totalScore) *
+          100
+        ).toFixed(2);
+      }
+    });
+
+    let dominantEmotion = Object.entries(emotions).reduce(
+      (max, [emotion, value]) =>
+        parseFloat(value) > parseFloat(max[1]) ? [emotion, value] : max,
+      ["neutral", "0"]
+    )[0];
+
+    return { emotions, dominantEmotion };
+  } catch (error) {
+    if (retryCount < maxRetries) {
+      const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10 seconds
+      await delay(backoffTime);
+      return analyzeImage(imagePath, retryCount + 1, maxRetries);
+    }
+
+    console.error(
+      "Error analyzing image:",
+      path.basename(imagePath),
+      error.message
+    );
+    return {
+      emotions: {
+        angry: "0.00",
+        disgust: "0.00",
+        fear: "0.00",
+        happy: "0.00",
+        sad: "0.00",
+        surprise: "0.00",
+        neutral: "100.00",
+      },
+      dominantEmotion: "neutral",
+    };
+  }
+}
+
+app.get("/start-session", async (req, res) => {
   currentSessionId = `session_${Date.now()}`;
   res.json({ sessionId: currentSessionId });
 });
@@ -84,6 +180,19 @@ app.post(
     if (!currentSessionId) {
       return res.status(400).json({ error: "Session ID is missing." });
     }
+
+    // Log the paths of the uploaded screenshots
+    const screenshotPaths = req.files["screenshot"].map((file) =>
+      path.join(
+        __dirname,
+        "uploads",
+        "screenshots",
+        currentSessionId,
+        file.filename
+      )
+    );
+    console.log("Uploaded screenshot paths:", screenshotPaths);
+
     res.json({ message: "Images uploaded successfully!" });
   }
 );
@@ -111,45 +220,42 @@ app.get("/analyze/:sessionId", async (req, res) => {
 
   try {
     const files = await fs.promises.readdir(sessionDir);
+    const batchSize = 3;
     const imageAnalyses = [];
-    const overallAnalysis = {
-      emotions: {
-        angry: 0,
-        disgust: 0,
-        fear: 0,
-        happy: 0,
-        sad: 0,
-        surprise: 0,
-        neutral: 0,
-      },
-    };
 
-    for (const file of files) {
-      const imagePath = path.join(sessionDir, file);
-      const analysis = await analyzeImage(imagePath);
-      imageAnalyses.push({ imagePath: file, emotions: analysis });
+    for (let i = 0; i < files.length; i += batchSize) {
+      const batch = files.slice(i, i + batchSize);
+      const batchPromises = batch.map(async (file) => {
+        const imagePath = path.join(sessionDir, file);
+        const { emotions, dominantEmotion } = await analyzeImage(imagePath);
+        return { imagePath: file, emotions, dominantEmotion };
+      });
 
-      for (let emotion in overallAnalysis.emotions) {
-        overallAnalysis.emotions[emotion] += parseFloat(analysis[emotion]);
-      }
+      const batchResults = await Promise.all(batchPromises);
+      imageAnalyses.push(...batchResults);
     }
 
-    const total = Object.values(overallAnalysis.emotions).reduce(
-      (a, b) => a + b,
-      0
-    );
+    const totalEmotions = {
+      angry: 0,
+      disgust: 0,
+      fear: 0,
+      happy: 0,
+      sad: 0,
+      surprise: 0,
+      neutral: 0,
+    };
 
-    if (total > 0) {
-      for (let emotion in overallAnalysis.emotions) {
-        overallAnalysis.emotions[emotion] = (
-          (overallAnalysis.emotions[emotion] / total) *
-          100
-        ).toFixed(2);
+    imageAnalyses.forEach(({ emotions }) => {
+      for (const emotion in emotions) {
+        totalEmotions[emotion] += parseFloat(emotions[emotion]);
       }
-    } else {
-      for (let emotion in overallAnalysis.emotions) {
-        overallAnalysis.emotions[emotion] = "0.00";
-      }
+    });
+
+    const overallAnalysis = { emotions: {} };
+    for (const emotion in totalEmotions) {
+      overallAnalysis.emotions[emotion] = (
+        totalEmotions[emotion] / imageAnalyses.length
+      ).toFixed(2);
     }
 
     const analysisDoc = new Analysis({
@@ -165,56 +271,6 @@ app.get("/analyze/:sessionId", async (req, res) => {
     res.status(500).json({ error: "Error analyzing images" });
   }
 });
-
-async function analyzeImage(imagePath) {
-  try {
-    const imageBuffer = await fs.promises.readFile(imagePath);
-
-    if (!imageBuffer || imageBuffer.length === 0) {
-      throw new Error("Image file is empty or unreadable.");
-    }
-
-    const response = await axios.post(
-      "https://api-inference.huggingface.co/models/motheecreator/vit-Facial-Expression-Recognition",
-      imageBuffer,
-      {
-        headers: {
-          Authorization: "",
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    const emotions = {
-      angry: "0.00",
-      disgust: "0.00",
-      fear: "0.00",
-      happy: "0.00",
-      sad: "0.00",
-      surprise: "0.00",
-      neutral: "0.00",
-    };
-
-    response.data.forEach((result) => {
-      if (result.label.toLowerCase() in emotions) {
-        emotions[result.label.toLowerCase()] = (result.score * 100).toFixed(2);
-      }
-    });
-
-    return emotions;
-  } catch (error) {
-    console.error("Error analyzing image:", error);
-    return {
-      angry: "0.00",
-      disgust: "0.00",
-      fear: "0.00",
-      happy: "0.00",
-      sad: "0.00",
-      surprise: "0.00",
-      neutral: "0.00",
-    };
-  }
-}
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
