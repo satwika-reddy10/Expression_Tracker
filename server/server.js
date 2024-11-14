@@ -1,3 +1,4 @@
+// Required module imports
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -8,18 +9,32 @@ const FormData = require("form-data");
 const sharp = require("sharp");
 const cors = require("cors");
 
+// Initialize Express app
 const app = express();
 const port = 5000;
 
+// Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static("uploads")); // Serve static files in 'uploads' directory
 
-mongoose.connect(
-  "mongodb+srv://leela:leeladhari@cluster0.aokrg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-  { useNewUrlParser: true, useUnifiedTopology: true }
-);
+// MongoDB Connection
+mongoose
+  .connect(
+    "mongodb+srv://leela:leeladhari@cluster0.aokrg.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    }
+  )
+  .then(() => {
+    console.log("Connected to MongoDB successfully");
+  })
+  .catch((err) => {
+    console.error("MongoDB connection error:", err);
+  });
 
+// Define MongoDB schema for analysis
 const AnalysisSchema = new mongoose.Schema({
   sessionId: String,
   imageAnalysis: [
@@ -48,17 +63,24 @@ const AnalysisSchema = new mongoose.Schema({
       neutral: Number,
     },
   },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
+// Create Analysis model
 const Analysis = mongoose.model("Analysis", AnalysisSchema);
 
-let currentSessionId = null;
+let currentSessionId = null; // Holds current session ID
 
+// Multer configuration for file storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (!currentSessionId) {
       return cb(new Error("Session ID is missing."), null);
     }
+    // Set upload path based on file type and session ID
     const sessionPath =
       file.fieldname === "webcam"
         ? path.join(__dirname, "uploads", "webcam_images", currentSessionId)
@@ -67,6 +89,7 @@ const storage = multer.diskStorage({
     cb(null, sessionPath);
   },
   filename: (req, file, cb) => {
+    // Create filename with timestamp for uniqueness
     const now = new Date();
     const dateString = now.toISOString().split("T")[0]; // YYYY-MM-DD
     const timeString = now.toTimeString().split(" ")[0].split(":").join("-"); // HH-MM-SS
@@ -77,16 +100,20 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// Helper function to delay execution
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Image analysis function with retry mechanism
 async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
   try {
+    // Read image as buffer
     const imageBuffer = await fs.promises.readFile(imagePath);
 
     if (!imageBuffer || imageBuffer.length === 0) {
       throw new Error("Image file is empty or unreadable.");
     }
 
+    // Send image to external model API for analysis
     const response = await axios.post(
       "https://api-inference.huggingface.co/models/motheecreator/vit-Facial-Expression-Recognition",
       imageBuffer,
@@ -98,6 +125,7 @@ async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
       }
     );
 
+    // Retry if model is loading
     if (response.data.error?.includes("Model is loading")) {
       if (retryCount < maxRetries) {
         const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10 seconds
@@ -108,6 +136,7 @@ async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
       }
     }
 
+    // Calculate emotion percentages
     const emotions = {
       angry: 0,
       disgust: 0,
@@ -134,6 +163,7 @@ async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
       }
     });
 
+    // Determine dominant emotion
     let dominantEmotion = Object.entries(emotions).reduce(
       (max, [emotion, value]) =>
         parseFloat(value) > parseFloat(max[1]) ? [emotion, value] : max,
@@ -142,6 +172,7 @@ async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
 
     return { emotions, dominantEmotion };
   } catch (error) {
+    // Retry logic for failed analyses
     if (retryCount < maxRetries) {
       const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 10000); // Max 10 seconds
       await delay(backoffTime);
@@ -168,11 +199,13 @@ async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
   }
 }
 
+// API to start a new session and generate session ID
 app.get("/start-session", async (req, res) => {
   currentSessionId = `session_${Date.now()}`;
   res.json({ sessionId: currentSessionId });
 });
 
+// API to upload images (screenshots and webcam captures)
 app.post(
   "/upload",
   upload.fields([{ name: "screenshot" }, { name: "webcam" }]),
@@ -181,7 +214,6 @@ app.post(
       return res.status(400).json({ error: "Session ID is missing." });
     }
 
-    // Log the paths of the uploaded screenshots
     const screenshotPaths = req.files["screenshot"].map((file) =>
       path.join(
         __dirname,
@@ -197,28 +229,54 @@ app.post(
   }
 );
 
-app.get("/sessions", (req, res) => {
-  const sessionsDir = path.join(__dirname, "uploads", "webcam_images");
-  fs.readdir(sessionsDir, (err, files) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ error: "Error reading sessions directory" });
-    }
-    res.json({ sessions: files });
-  });
+// API to get all available sessions
+app.get("/sessions", async (req, res) => {
+  try {
+    // Retrieve sessions from MongoDB
+    const analyses = await Analysis.find({}, "sessionId createdAt").sort({
+      createdAt: -1,
+    });
+    const sessionsFromDB = analyses.map((analysis) => analysis.sessionId);
+
+    // Get session directories on filesystem
+    const sessionsDir = path.join(__dirname, "uploads", "webcam_images");
+    const filesystemSessions = await fs.promises.readdir(sessionsDir);
+
+    // Combine MongoDB and filesystem sessions, removing duplicates
+    const allSessions = [
+      ...new Set([...sessionsFromDB, ...filesystemSessions]),
+    ];
+
+    res.json({ sessions: allSessions });
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ error: "Error reading sessions" });
+  }
 });
 
+// API to analyze images in a session, or retrieve existing analysis from MongoDB
 app.get("/analyze/:sessionId", async (req, res) => {
   const { sessionId } = req.params;
-  const sessionDir = path.join(
-    __dirname,
-    "uploads",
-    "webcam_images",
-    sessionId
-  );
 
   try {
+    // Check if analysis already exists in MongoDB
+    const existingAnalysis = await Analysis.findOne({ sessionId });
+
+    if (existingAnalysis) {
+      console.log(`Found existing analysis for session ${sessionId}`);
+      return res.json({
+        imageAnalyses: existingAnalysis.imageAnalysis,
+        overallAnalysis: existingAnalysis.overallAnalysis,
+      });
+    }
+
+    // Process new images for analysis
+    const sessionDir = path.join(
+      __dirname,
+      "uploads",
+      "webcam_images",
+      sessionId
+    );
     const files = await fs.promises.readdir(sessionDir);
     const batchSize = 3;
     const imageAnalyses = [];
@@ -235,6 +293,7 @@ app.get("/analyze/:sessionId", async (req, res) => {
       imageAnalyses.push(...batchResults);
     }
 
+    // Calculate overall emotion analysis
     const totalEmotions = {
       angry: 0,
       disgust: 0,
@@ -244,34 +303,38 @@ app.get("/analyze/:sessionId", async (req, res) => {
       surprise: 0,
       neutral: 0,
     };
+    let totalImages = imageAnalyses.length;
 
     imageAnalyses.forEach(({ emotions }) => {
-      for (const emotion in emotions) {
-        totalEmotions[emotion] += parseFloat(emotions[emotion]);
-      }
+      Object.entries(emotions).forEach(([emotion, value]) => {
+        totalEmotions[emotion] += parseFloat(value);
+      });
     });
 
-    const overallAnalysis = { emotions: {} };
-    for (const emotion in totalEmotions) {
-      overallAnalysis.emotions[emotion] = (
-        totalEmotions[emotion] / imageAnalyses.length
-      ).toFixed(2);
-    }
+    const overallAnalysis = {
+      emotions: Object.fromEntries(
+        Object.entries(totalEmotions).map(([emotion, value]) => [
+          emotion,
+          (value / totalImages).toFixed(2),
+        ])
+      ),
+    };
 
-    const analysisDoc = new Analysis({
+    const newAnalysis = new Analysis({
       sessionId,
       imageAnalysis: imageAnalyses,
       overallAnalysis,
     });
-    await analysisDoc.save();
+    await newAnalysis.save();
 
     res.json({ imageAnalyses, overallAnalysis });
   } catch (error) {
-    console.error("Error during analysis:", error);
+    console.error("Error analyzing images:", error);
     res.status(500).json({ error: "Error analyzing images" });
   }
 });
 
+// Start server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server listening on port ${port}`);
 });
