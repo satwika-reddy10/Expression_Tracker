@@ -1,124 +1,238 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities; */
-
-/* General Container Styling */
+/* General Styles */
 .admin-app-container {
-  background-image: url('../../backgroundfinal.jpg'); /* Update this path as needed */
-  background-size: cover;
-  background-position: center;
-  padding: 20px;
-  font-family: 'Poppins', sans-serif;
-  color: #333;
-  max-height: 100vh;
-  overflow-y: auto;
+  padding: 15px;
+  background-color: #f8f9fa;
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  transform: scale(0.85);
+  transform-origin: center;
+  width: 100%;
+  overflow-y: hidden;
+  position: relative;
 }
 
-/* Table Styling */
-.table-container {
-  overflow-x: auto;
-  margin-top: 20px;
-  background-color: rgba(255, 255, 255, 0.85); /* Light background for better readability */
-  border-radius: 10px;
+.admin-app-container h1,
+.admin-app-container h2,
+.admin-app-container h3,
+.admin-app-container h4 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Layout for Content */
+.content-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 95%;
+  max-width: 85%;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-grow: 1;
+  padding: 0 2.5%;
+}
+
+/* Pie Chart Styles */
+.pie-chart-container {
+  flex: 0 0 35%;
+  padding: 54.3px;
+  border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  max-width: 80%; /* Reduce table width for better alignment with pie chart */
-  margin: 0 auto; /* Center align table */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  height: auto;
+  min-height: 300px;
 }
 
-table {
+.pie-chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Table Styles */
+.table-container {
+  flex: 0 0 65%;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: 75vh;
+  min-width: 400px;
+  
+}
+
+.analysis-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-thead th {
-  padding: 12px;
-  background-color: #3A9AD9; /* Muted teal to match the background color scheme */
-  color: white;
+.analysis-table th,
+.analysis-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
   text-align: center;
-  font-weight: 600;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  font-size: 16px; 
+  color: #34495e;
 }
 
-tbody td {
-  padding: 12px;
-  text-align: center;
-  border-top: 1px solid #ddd;
-  color: #555;
-  font-size: 0.95rem;
+.analysis-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
 }
 
-/* Row Hover Effect */
-tbody tr:hover {
-  background-color: rgba(58, 154, 217, 0.1); /* Subtle hover effect with a soft teal tint */
+
+.analysis-table td:nth-child(1),
+.analysis-table td:nth-child(3) {
+  width: 25%;
+}
+.analysis-table td:nth-child(2) {
+  width: 30%;
 }
 
-/* Image Styling */
-tbody td img {
-  width: 80%;
-  max-width: 200px;
+.analysis-table tbody tr:hover {
+  background-color: #f8f8f8;
+}
+
+/* Images in Table */
+.webcam-image,
+.screenshot-image {
+  width: 90%;
   height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  transition: transform 0.3s ease;
-}
-
-tbody td img:hover {
-  transform: scale(1.05);
-}
-
-/* Emotion Label Styling */
-.emotion-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-  font-family: 'Montserrat', sans-serif;
-  margin-top: 5px;
-}
-
-/* Chart and Button Section */
-.chart-section {
-  width: 70%;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 0 auto;
-}
-
-.back-button {
-  background-color: #F28B82; /* Coral color matching the background */
-  color: #fff;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
   display: block;
-  margin: 20px auto;
 }
 
-.back-button:hover {
-  background-color: #E57373;
-  transform: translateY(-2px);
+/* Emotion Analysis Section in Table */
+.analysis-data {
+  text-align: left;
+  font-size: 16px; 
+  color: #2c3e50;
+  word-wrap: break-word;
 }
 
-/* Sessions List Styling */
-.sessions-list {
-  list-style-type: none;
-  padding: 0;
+.analysis-data h4 {
+  font-size: 18px; 
+  margin-bottom: 5px;
 }
 
-.sessions-list li {
-  padding: 12px;
-  margin-bottom: 10px;
-  background-color: #FFF3E0; /* Light yellow to complement the background */
-  border: 1px solid #FFAB91;
-  border-radius: 8px;
-  color: #333;
-  font-weight: 500;
+.emotion-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.dominant-emotion {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #27ae60;
+}
+
+/* Button Styles */
+.back-to-sessions-btn {
+  background-color: #007bff;
+  color: #fff;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  margin-top: 20px;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+  align-self: center;
+  position: absolute;
+  bottom: 20px;
+  width: auto;
+  text-align: center;
 }
 
-.sessions-list li:hover {
-  background-color: #FFE0B2; /* Darker yellow on hover */
+.back-to-sessions-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Sessions List Styles */
+.sessions-list-container {
+  width: 100%;
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  font-size: 1.2rem;
+}
+
+.sessions-list h3 {
+  color: #2c3e50;
+  font-size: 1.8rem; 
+}
+
+.sessions-list {
+  margin-top: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.sessions-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.session-item {
+  padding: 15px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.4rem; 
+}
+
+.session-item:hover {
+  background-color: #f8f8f8;
+}
+
+.no-sessions {
+  color: #aaa;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.3rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .admin-app-container {
+    transform: scale(1);
+    width: 100%;
+  }
+
+  .content-container {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .pie-chart-container,
+  .table-container {
+    flex-basis: 100%;
+  }
+
+  .analysis-table {
+    font-size: 1rem; 
+  }
+
+  .back-to-sessions-btn {
+    position: static;
+    margin-top: 10px;
+  }
 }
