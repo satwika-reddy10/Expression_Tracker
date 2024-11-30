@@ -37,17 +37,18 @@ function LoginPage() {
   return (
     <div className="outer-container">
       {/* Semi-transparent overlay */}
-      <div className="overlay"></div>
 
       {/* Login box */}
       <div className="login-box">
-        <h1>Login</h1>
+        <div className="heading">
+          <h1>Login</h1>
+        </div>
         <form onSubmit={handleLogin}>
           {/* Input for username */}
           <div className="input-field">
-            <label htmlFor="username">Username:</label>
             <input
               type="text"
+              placeholder="Username"
               id="username"
               name="username"
               value={username}
@@ -58,9 +59,9 @@ function LoginPage() {
 
           {/* Input for password */}
           <div className="input-field">
-            <label htmlFor="password">Password:</label>
             <input
               type="password"
+              placeholder="password"
               id="password"
               name="password"
               value={password}
@@ -70,7 +71,7 @@ function LoginPage() {
           </div>
 
           {/* Submit button */}
-          <button type="submit">Login</button>
+          <button type="submit">LOGIN</button>
         </form>
       </div>
     </div>
