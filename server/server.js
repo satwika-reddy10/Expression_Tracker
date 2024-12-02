@@ -268,49 +268,48 @@ app.post("/login", async (req, res) => {
 
 // Start session route
 app.get("/start-session", async (req, res) => {
-  console.log("Entered Server");
-
-  const currentSessionId = `session_${Date.now()}`;
-  console.log("Generated Session ID:", currentSessionId);
-
   const username = req.query.username;
-  console.log("Received Username:", username);
 
   if (!username) {
-    console.log("No username provided");
     return res.status(400).json({ message: "Username is required" });
   }
 
   try {
-    console.log("Checking if username exists in the database...");
-
     const userProfile = await UserProfile.findOne({ name: username });
 
     if (!userProfile) {
-      console.log("User profile not found for username:", username);
       return res.status(404).json({ message: "User not found" });
     }
 
-    console.log("User profile found:", userProfile);
+    // Check for recent active sessions (within last 5 seconds)
+    const fiveSecondsAgo = new Date(Date.now() - 5000);
+    const recentSessions = userProfile.sessions.filter(
+      (session) => session.createdAt > fiveSecondsAgo
+    );
 
-    if (userProfile.role === "kid") {
-      console.log("User is a kid; updating session IDs...");
+    let currentSessionId;
+    if (recentSessions.length > 0) {
+      // Reuse the most recent active session
+      currentSessionId = recentSessions[recentSessions.length - 1].sessionId;
+    } else {
+      // Generate a new session ID
+      currentSessionId = `session_${Date.now()}`;
 
-      await UserProfile.findOneAndUpdate(
-        { name: username },
-        {
-          $push: {
-            sessions: {
-              sessionId: currentSessionId,
-              createdAt: new Date(), // Add a timestamp for the session
+      // Add new session only if user is a kid
+      if (userProfile.role === "kid") {
+        await UserProfile.findOneAndUpdate(
+          { name: username },
+          {
+            $push: {
+              sessions: {
+                sessionId: currentSessionId,
+                createdAt: new Date(),
+              },
             },
           },
-        },
-        { new: true, useFindAndModify: false }
-      );
-      console.log("Session ID added for user:", username);
-    } else {
-      console.log("User is admin; session ID not added.");
+          { new: true, useFindAndModify: false }
+        );
+      }
     }
 
     res.json({ sessionId: currentSessionId });
