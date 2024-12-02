@@ -1,7 +1,7 @@
 // src/components/GameComponent.jsx
 import React, { useState, useEffect } from 'react';
 import './GameComponent.css';
-import ImageCapture from './ImageCaptureComponent';
+import ImageCapture from '../ImageCapture/ImageCaptureComponent';
 
 const shapes = ['circle', 'square', 'triangle'];
 
@@ -29,12 +29,13 @@ function GameComponent() {
   const startSession = async () => {
     try {
       const response = await fetch(`http://localhost:5000/start-session?username=${username}`);
-      const data = await response.json();
+      const data = await response.json();  
       setSessionId(data.sessionId);
+      return data.sessionId;
     } catch (error) {
       console.error('Error creating session:', error);
     }
-  };
+  };;
 
   useEffect(() => {
     startSession();
@@ -162,7 +163,7 @@ function GameComponent() {
     return (
       <div className="app">
         <h1 className="game-title">Shape Counting Game</h1>
-        <div className="game-container">
+        <div className="score-container">
           <p className="result">Your score: {score} / {questions.length}</p>
           <button
             className="restart-btn"
@@ -187,7 +188,6 @@ function GameComponent() {
           
         />
       )}
-      <h1 className="game-title">Shape Counting Game</h1>
       <div className="game-container">
         <h3>How many <span className="target-shape">{shape}s</span> are in the sequence?</h3>
         <div className="shape-sequence">
@@ -234,7 +234,7 @@ function GameComponent() {
               onClick={nextQuestion}
               aria-label="Next Question"
             >
-              Next Question
+              &rarr;
             </button>
           </div>
         )}

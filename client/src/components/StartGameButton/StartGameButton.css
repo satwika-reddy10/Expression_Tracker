@@ -68,6 +68,7 @@ html, body {
   border-radius: 9999px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
+  width:100%
 }
 
 .start-button:hover {
