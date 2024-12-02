@@ -50,6 +50,9 @@
     text-align: center; /* Center-align text within the container */
     position:relative;
   }
+  .game-container-h3{
+    font-size: 20px;/*Explicitly specifying the font size of h3*/
+  }
   .score-container{
     background: white; /* White background for contrast */
     padding: 2rem; /* Space inside the container */

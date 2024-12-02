@@ -189,7 +189,7 @@ function GameComponent() {
         />
       )}
       <div className="game-container">
-        <h3>How many <span className="target-shape">{shape}s</span> are in the sequence?</h3>
+        <h3 className="game-container-h3">How many <span className="target-shape">{shape}s</span> are in the sequence?</h3>
         <div className="shape-sequence">
           {sequence.map((s, index) => (
             <div 
