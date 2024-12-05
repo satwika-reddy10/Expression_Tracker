@@ -9,7 +9,7 @@
     height: 100vh; /* Full screen height */
     width: 100vw; /* Full screen width */
     overflow: hidden; /* Prevent overall page scrolling */
-    background-image: url('background.jpg'); /* Update with your actual image path */
+    background-image: url('admin_background.jpg'); /* Update with your actual image path */
     background-size: cover; /* Ensure the background image covers the entire area */
     background-position: center; /* Center the background image */
     background-repeat: no-repeat; /* Prevent tiling of the background image */
@@ -79,6 +79,22 @@ h2, h3 {
 
 .sessions-table button:hover {
     background-color: #0056b3;
+}
+
+
+.isloading-container{
+    color: white;
+    font-size: 30px;
+    text-align: center;
+    font-weight: bold;
+  }
+  
+.admin-dashboard-h2{
+    font-size: 40px;
+}
+
+.session-list-h3{
+    font-size: 30px;
 }
 
 @media screen and (max-width: 768px) {

@@ -6,7 +6,8 @@ import "./AnalysisView.css";
 
 function AdminApp() {
   const [sessions, setSessions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // For session list
+  const [isAnalysisLoading, setIsAnalysisLoading] = useState(false); // For analysis loading
   const [selectedSession, setSelectedSession] = useState(null);
   const [analysisData, setAnalysisData] = useState(null);
 
@@ -32,6 +33,7 @@ function AdminApp() {
 
   const handleSessionClick = async (sessionId) => {
     setSelectedSession(sessionId);
+    setIsAnalysisLoading(true);
     try {
       const response = await fetch(
         `http://localhost:5000/analyze/${sessionId}`
@@ -50,6 +52,8 @@ function AdminApp() {
       setAnalysisData(data);
     } catch (error) {
       console.error("Error analyzing session:", error);
+    } finally {
+      setIsAnalysisLoading(false);
     }
   };
 
@@ -58,16 +62,10 @@ function AdminApp() {
     setAnalysisData(null);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-
   const renderSessionsList = () => (
     <div className="sessions-list-container">
-      <h2>Admin Dashboard</h2>
-      <h3>Session List</h3>
+      <h2 className="admin-dashboard-h2">Admin Dashboard</h2>
+      <h3 className="session-list-h3">Session List 📋</h3>
       {isLoading ? (
         <p>Loading sessions...</p>
       ) : (
@@ -85,15 +83,18 @@ function AdminApp() {
               {sessions.map((user) => (
                 <React.Fragment key={user.username}>
                   {user.sessions.map((session, index) => (
-                    <tr key={session.sessionId}>
+                    <tr key={session.sessionId} className="session-row">
                       {index === 0 && (
-                        <td rowSpan={user.sessions.length}>{user.username}</td>
+                        <td rowSpan={user.sessions.length}>
+                          {user.username} 👤
+                        </td>
                       )}
                       <td>{session.sessionId}</td>
                       <td>{new Date(session.createdAt).toLocaleString()}</td>
                       <td>
                         <button
                           onClick={() => handleSessionClick(session.sessionId)}
+                          className="action-button"
                         >
                           Get Analysis
                         </button>
@@ -148,25 +149,34 @@ function AdminApp() {
     const options = {
       responsive: true,
       plugins: {
-        legend: {
-          position: "top",
-        },
-        title: {
-          display: true,
-          text: "Emotion Distribution",
-        },
+        legend: { position: "top" },
+        title: { display: true, text: "Emotion Distribution" },
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-        },
-      },
+      scales: { y: { beginAtZero: true } },
     };
 
     return (
       <div className="bar-chart-container">
         <Bar data={data} options={options} />
       </div>
+    );
+  };
+
+  const renderAnalysis = () => {
+    if (isAnalysisLoading) {
+      return (
+        <p className="isloading-container">Loading analysis, please wait...</p>
+      );
+    }
+
+    return (
+      <>
+        {renderBarChart()}
+        {renderTable()}
+        <button onClick={handleBackToSessions} className="back-to-sessions-btn">
+          ← Back to Sessions
+        </button>
+      </>
     );
   };
 
@@ -226,20 +236,7 @@ function AdminApp() {
   return (
     <div className="admin-app-container">
       <div className="content-container">
-        {selectedSession ? (
-          <>
-            {renderBarChart()}
-            {renderTable()}
-            <button
-              onClick={handleBackToSessions}
-              className="back-to-sessions-btn"
-            >
-              ← Back to Sessions
-            </button>
-          </>
-        ) : (
-          renderSessionsList()
-        )}
+        {selectedSession ? renderAnalysis() : renderSessionsList()}
       </div>
     </div>
   );
