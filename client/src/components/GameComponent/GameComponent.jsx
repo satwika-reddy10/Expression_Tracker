@@ -1,7 +1,8 @@
 // src/components/GameComponent.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef} from 'react';
 import './GameComponent.css';
 import ImageCapture from '../ImageCapture/ImageCaptureComponent';
+import Confetti from 'react-confetti';
 
 const shapes = ['circle', 'square', 'triangle'];
 
@@ -24,18 +25,21 @@ function GameComponent() {
   const [streak, setStreak] = useState(0);
   const [isGameActive, setIsGameActive] = useState(true);
   const [sessionId, setSessionId] = useState(null);
+  const [showConfetti,setShowConfetti]=useState(null);
+  const [confettiPieces,setConfettiPieces]=useState(200);
+  const confettiRef=useRef(null);
   const username = localStorage.getItem('username');
 
   const startSession = async () => {
     try {
       const response = await fetch(`http://localhost:5000/start-session?username=${username}`);
-      const data = await response.json();  
+      const data = await response.json();
       setSessionId(data.sessionId);
       return data.sessionId;
     } catch (error) {
       console.error('Error creating session:', error);
     }
-  };;
+  };
 
   useEffect(() => {
     startSession();
@@ -119,6 +123,8 @@ function GameComponent() {
     setIsCorrect(null);
     setStreak(0);
     setIsGameActive(true);
+    setShowConfetti(true);
+    setConfettiPieces(200);
     
     const newQuestions = Array(5)
       .fill(null)
@@ -156,12 +162,34 @@ function GameComponent() {
     if (isCorrect) return streak > 1 ? '😁' : '😃';
     return '😢';
   };
+  useEffect(() => {
+    if (!isGameActive) {
+      setShowConfetti(true);
 
+      const stopProductionTimer = setTimeout(() => {
+        setConfettiPieces(0); // Stop producing new confetti after 7 seconds
+      }, 7000);
+
+      const hideConfettiTimer = setTimeout(() => {
+        setShowConfetti(false); // Remove the Confetti component after confetti has fallen
+      }, 15000);
+
+      return () => {
+        clearTimeout(stopProductionTimer);
+        clearTimeout(hideConfettiTimer);
+      };
+    }
+  }, [isGameActive]);
   if (questions.length === 0) return <div>Loading...</div>;
+ 
 
   if (!isGameActive) {
-    return (
+       return (
       <div className="app">
+        <Confetti 
+        ref={confettiRef}
+        numberOfPieces={confettiPieces}
+         gravity={0.069}/>
         <h1 className="game-title">Shape Counting Game</h1>
         <div className="score-container">
           <p className="result">Your score: {score} / {questions.length}</p>
@@ -189,7 +217,7 @@ function GameComponent() {
         />
       )}
       <div className="game-container">
-        <h3 className="game-container-h3">How many <span className="target-shape">{shape}s</span> are in the sequence?</h3>
+      <h3 className="game-container-h3">How many <span className="target-shape">{shape}s</span> are in the sequence?</h3>
         <div className="shape-sequence">
           {sequence.map((s, index) => (
             <div 

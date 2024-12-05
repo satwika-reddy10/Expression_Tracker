@@ -12,7 +12,7 @@
     min-height: 100vh; /* Minimum height covers full viewport */
     min-width: 100vw; /* Minimum width covers full viewport */
     /* Background styling was commented out */
-    background: url("7.jpg");
+    background: url("Game_background.jpg");
     background-size: cover; /* Ensures the image covers the entire screen */
     background-position: center; /* Centers the image */
     background-repeat: no-repeat; /* Prevents the image from repeating */
