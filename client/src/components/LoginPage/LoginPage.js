@@ -61,7 +61,7 @@ function LoginPage() {
           <div className="input-field">
             <input
               type="password"
-              placeholder="password"
+              placeholder="Password"
               id="password"
               name="password"
               value={password}
