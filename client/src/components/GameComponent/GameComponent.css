@@ -204,6 +204,7 @@
     align-items: center; /* Center-align content vertically */
     justify-content: center; /* Center-align content horizontally */
     position: relative; /* Allows absolute positioning of children */
+    animation: bounce 2s infinite;
   }
   
   /* Circle shape styling */
@@ -238,4 +239,15 @@
     10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); } /* Move left */
     20%, 40%, 60%, 80% { transform: translateX(10px); } /* Move right */
   }
-  
+  /* Keyframes for the bounce animation */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-30px);
+  }
+  60% {
+    transform: translateY(-15px);
+  }
+}
