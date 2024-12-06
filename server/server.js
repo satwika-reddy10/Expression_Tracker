@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -9,7 +10,7 @@ const sharp = require("sharp");
 const cors = require("cors");
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
@@ -39,7 +40,7 @@ const UserProfile = mongoose.model("UserProfile", userProfileSchema);
 
 // MongoDB Connection
 mongoose
-  .connect("", {})
+  .connect(process.env.MONGODB_URI, {})
   .then(() => {
     console.log("Connected to MongoDB successfully");
     uploadDefaultProfiles();
@@ -162,7 +163,7 @@ async function analyzeImage(imagePath, retryCount = 0, maxRetries = 5) {
       imageBuffer,
       {
         headers: {
-          Authorization: "",
+          Authorization: `Bearer ${process.env.API_KEY}`,
           "Content-Type": "application/json",
         },
       }
@@ -469,5 +470,5 @@ app.get("/analyze/:sessionId", async (req, res) => {
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Server is running on ${process.env.BASE_URL}`);
 });
