@@ -175,6 +175,22 @@
   margin: 0;
 }
 
+.isloading-container {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #6b21a8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full viewport height */
+  width: 100vw; /* Full viewport width */
+  position: absolute; /* Makes the container overlay the page */
+  top: 0;
+  left: 0;
+  z-index: 1000; /* Ensures it stays on top */
+  text-align: center;
+}
+
 .session-item {
   padding: 15px;
   border-bottom: 1px solid #ddd;

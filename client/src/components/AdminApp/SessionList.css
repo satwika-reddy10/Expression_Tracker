@@ -81,22 +81,6 @@ h2, h3 {
     background-color: #0056b3;
 }
 
-
-.isloading-container{
-    color: white;
-    font-size: 30px;
-    text-align: center;
-    font-weight: bold;
-  }
-  
-.admin-dashboard-h2{
-    font-size: 40px;
-}
-
-.session-list-h3{
-    font-size: 30px;
-}
-
 @media screen and (max-width: 768px) {
     h2, h3 {
         font-size: 2rem; /* Adjusted for smaller screens */
@@ -119,3 +103,41 @@ h2, h3 {
         padding: 5px 10px;
     }
 }
+/* Dark divider before a new user */
+.dark-divider {
+    border-top: 4px solid #000; /* Thick dark line for separating users */
+}
+
+/* Light divider after every 4 session IDs */
+.light-divider {
+    border-bottom: 2px solid #ccc; /* Thin light gray line between groups */
+}
+
+/* Hover effect for rows */
+.sessions-table tr:hover {
+    background-color: #f9f9f9; /* Subtle background change on hover */
+}
+
+.user-dropdown {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    border: 2px solid #4b0082;
+    border-radius: 8px;
+    background-color: white;
+    color: #2c3e50;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+  .user-dropdown:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  
+  .select-prompt {
+    text-align: center;
+    color: #666;
+    font-size: 1.2rem;
+    margin: 20px 0;
+  }
