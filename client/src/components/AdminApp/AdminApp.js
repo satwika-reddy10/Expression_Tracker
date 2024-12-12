@@ -171,7 +171,7 @@ function AdminApp() {
         {
           label: "Emotion Percentage",
           data: Object.values(emotions).map((value) => parseFloat(value)),
-          backgroundColor: "#ADD8E6",
+          backgroundColor: "#684ea5",
           borderColor: "#E0BFEF",
           borderWidth: 1,
         },
